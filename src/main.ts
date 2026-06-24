@@ -86,6 +86,19 @@ export async function handler(req: Request): Promise<Response> {
     }
   }
 
+  if (url.pathname === "/js/script.js") {
+    try {
+      const jsPath = join(staticDir, "js/script.js");
+      const js = await Deno.readTextFile(jsPath);
+      return new Response(js, {
+        headers: { "content-type": "application/javascript; charset=utf-8" },
+      });
+    } catch (e) {
+      console.error("Failed to read script.js:", e);
+      return new Response("JS not found", { status: 404 });
+    }
+  }
+
   // Magic Link: Direct retrieval via /:code
   const codeMatch = url.pathname.match(/^\/(\d{6})$/);
   if (codeMatch) {

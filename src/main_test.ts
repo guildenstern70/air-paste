@@ -22,6 +22,16 @@ Deno.test("returns style.css on /css/style.css", async () => {
   assertEquals(body.includes("AirPaste CSS Stylesheet"), true);
 });
 
+Deno.test("returns script.js on /js/script.js", async () => {
+  const res = await handler(new Request("http://localhost/js/script.js"));
+  assertEquals(
+    res.headers.get("content-type"),
+    "application/javascript; charset=utf-8",
+  );
+  const body = await res.text();
+  assertEquals(body.includes("AirPaste"), true);
+});
+
 Deno.test("REST API: Create, Get, and Update Paste", async () => {
   // 1. Create a paste
   const createRes = await handler(
