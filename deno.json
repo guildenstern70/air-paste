@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "start": "deno run --allow-net=0.0.0.0:8000 --allow-env --allow-read=. --allow-write=. src/main.ts",
-    "dev": "deno run --watch --allow-net=0.0.0.0:8000 --allow-env --allow-read=. --allow-write=. src/main.ts",
+    "start": "deno run --env --allow-net --allow-env --allow-read=. --allow-write=. src/main.ts",
+    "dev": "deno run --watch --env --allow-net --allow-env --allow-read=. --allow-write=. src/main.ts",
     "lint": "deno lint src",
     "fmt": "deno fmt src"
   },
@@ -14,6 +14,7 @@
     "@std/assert": "jsr:@std/assert@1",
     "@std/path": "jsr:@std/path@1",
     "@eta-dev/eta": "jsr:@eta-dev/eta@3",
-    "@littlelite/dyelog": "jsr:@littlelite/dyelog@^0.2.1"
+    "@littlelite/dyelog": "jsr:@littlelite/dyelog@^0.2.1",
+    "@upstash/redis": "npm:@upstash/redis@^1.38.0"
   }
 }
