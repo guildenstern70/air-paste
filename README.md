@@ -3,6 +3,11 @@
 AirPaste is a cross-platform clipboard manager that allows you to copy and paste text between devices 
 seamlessly. 
 
+You can find the application running here:
+https://air-paste.guildenstern70.deno.net/
+
+<img src="static/img/Screenshot.png" alt="Screenshot of AirPaste" width="600">
+
 This application is built using Deno, a secure runtime for TypeScript, and leverages Upstash Redis
 for the persistence of clipboard data.
 
