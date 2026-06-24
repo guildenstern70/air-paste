@@ -19,14 +19,33 @@ const eta = new Eta({
 });
 
 export async function serveIndex(
-  _req: Request,
+  req: Request,
   code?: string,
   initialValue = "",
   updatedAt = 0,
 ): Promise<Response> {
   try {
+    const url = new URL(req.url);
+    const origin = url.origin;
+    const canonicalUrl = code ? `${origin}/${code}` : `${origin}/`;
+    const ogImage = `${origin}/img/Screenshot.png`;
+
+    const title = code
+      ? `AirPaste — Snippet ${code} — Retrieve shared snippet`
+      : "AirPaste — Share text and code snippets instantly";
+
+    const metaDescription = code
+      ? "Retrieve your shared text or code snippet on AirPaste using the 6-digit sync code."
+      : "AirPaste is a free, lightweight, and ephemeral remote clipboard manager. Share text and code snippets instantly between devices using a 6-digit code or magic link.";
+
+    const robots = code ? "noindex, nofollow" : "index, follow";
+
     const html = await eta.renderAsync("index", {
-      title: "AirPaste — Instant Text Sharing",
+      title,
+      metaDescription,
+      robots,
+      canonicalUrl,
+      ogImage,
       version: VERSION,
       code: code || "",
       initialValue: initialValue,

@@ -38,9 +38,12 @@ To run AirPaste type
 
 To run tests, type
 
-    deno test --allow-net
+    deno task test
 
 ## Lint
+
+    deno task lint
+
 
 
 

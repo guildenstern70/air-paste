@@ -95,3 +95,105 @@ Deno.test("Magic link: Redirects to home on non-existing code", async () => {
   assertEquals(res.status, 302);
   assertEquals(res.headers.get("location")?.includes("/?error=notfound"), true);
 });
+
+Deno.test("SEO: Homepage returns correct SEO metadata", async () => {
+  const res = await handler(new Request("http://localhost/"));
+  assertEquals(res.headers.get("content-type"), "text/html; charset=utf-8");
+  const html = await res.text();
+
+  // Assert Title
+  assertEquals(
+    html.includes(
+      "<title>AirPaste — Share text and code snippets instantly</title>",
+    ),
+    true,
+  );
+
+  // Assert Description
+  assertEquals(
+    html.includes(
+      '<meta name="description" content="AirPaste is a free, lightweight, and ephemeral remote clipboard manager. Share text and code snippets instantly between devices using a 6-digit code or magic link.">',
+    ),
+    true,
+  );
+
+  // Assert Robots
+  assertEquals(
+    html.includes('<meta name="robots" content="index, follow">'),
+    true,
+  );
+
+  // Assert Canonical
+  assertEquals(
+    html.includes('<link rel="canonical" href="http://localhost/">'),
+    true,
+  );
+
+  // Assert Open Graph / Twitter Tags
+  assertEquals(
+    html.includes(
+      '<meta property="og:title" content="AirPaste — Share text and code snippets instantly">',
+    ),
+    true,
+  );
+  assertEquals(
+    html.includes('<meta property="og:url" content="http://localhost/">'),
+    true,
+  );
+  assertEquals(
+    html.includes(
+      '<meta property="og:image" content="http://localhost/img/Screenshot.png">',
+    ),
+    true,
+  );
+  assertEquals(
+    html.includes('<meta name="twitter:card" content="summary_large_image">'),
+    true,
+  );
+});
+
+Deno.test("SEO: Magic link paste page returns privacy-focused robots tags", async () => {
+  // First, create a paste to get a valid code
+  const createRes = await handler(
+    new Request("http://localhost/api/paste", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content: "SEO Privacy Test Snippet" }),
+    }),
+  );
+  assertEquals(createRes.status, 200);
+  const { code } = await createRes.json();
+
+  // Access the magic link page
+  const res = await handler(new Request(`http://localhost/${code}`));
+  assertEquals(res.status, 200);
+  const html = await res.text();
+
+  // Assert Page Title for Paste
+  assertEquals(
+    html.includes(
+      `<title>AirPaste — Snippet ${code} — Retrieve shared snippet</title>`,
+    ),
+    true,
+  );
+
+  // Assert Robots is noindex, nofollow
+  assertEquals(
+    html.includes('<meta name="robots" content="noindex, nofollow">'),
+    true,
+  );
+
+  // Assert Canonical is specific to paste code
+  assertEquals(
+    html.includes(`<link rel="canonical" href="http://localhost/${code}">`),
+    true,
+  );
+});
+
+Deno.test("SEO: Static image serving delivers assets", async () => {
+  const res = await handler(new Request("http://localhost/img/Screenshot.png"));
+  assertEquals(res.status, 200);
+  assertEquals(res.headers.get("content-type"), "image/png");
+  const bytes = await res.arrayBuffer();
+  assertEquals(bytes.byteLength > 0, true);
+});

@@ -100,6 +100,29 @@ export async function handler(req: Request): Promise<Response> {
     }
   }
 
+  if (url.pathname.startsWith("/img/")) {
+    try {
+      const imgPath = join(staticDir, url.pathname);
+      const imgBytes = await Deno.readFile(imgPath);
+      let contentType = "image/png";
+      if (url.pathname.endsWith(".jpg") || url.pathname.endsWith(".jpeg")) {
+        contentType = "image/jpeg";
+      } else if (url.pathname.endsWith(".svg")) {
+        contentType = "image/svg+xml";
+      } else if (url.pathname.endsWith(".gif")) {
+        contentType = "image/gif";
+      } else if (url.pathname.endsWith(".webp")) {
+        contentType = "image/webp";
+      }
+      return new Response(imgBytes, {
+        headers: { "content-type": contentType },
+      });
+    } catch (e) {
+      console.error("Failed to read image:", e);
+      return new Response("Image not found", { status: 404 });
+    }
+  }
+
   // Magic Link: Direct retrieval via /:code
   const codeMatch = url.pathname.match(/^\/(\d{6})$/);
   if (codeMatch) {

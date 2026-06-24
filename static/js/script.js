@@ -76,6 +76,7 @@ function formatCode(code) {
 function updateStateUI(code) {
   currentCode = code;
   if (code) {
+    document.title = `AirPaste — Snippet ${code} — Retrieve shared snippet`;
     saveButtonText.textContent = "Update Paste";
     statusHint.textContent = "Synchronized";
     // Set update/sync icon
@@ -90,6 +91,7 @@ function updateStateUI(code) {
       }`;
     sharePanel.classList.add("active");
   } else {
+    document.title = "AirPaste — Share text and code snippets instantly";
     saveButtonText.textContent = "Save Snippet";
     statusHint.textContent = "Ready to share";
     saveButtonIcon.innerHTML =

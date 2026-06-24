@@ -4,6 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= it.title %></title>
+  <meta name="description" content="<%= it.metaDescription %>">
+  <meta name="robots" content="<%= it.robots %>">
+  <link rel="canonical" href="<%= it.canonicalUrl %>">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= it.canonicalUrl %>">
+  <meta property="og:title" content="<%= it.title %>">
+  <meta property="og:description" content="<%= it.metaDescription %>">
+  <meta property="og:image" content="<%= it.ogImage %>">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="<%= it.canonicalUrl %>">
+  <meta name="twitter:title" content="<%= it.title %>">
+  <meta name="twitter:description" content="<%= it.metaDescription %>">
+  <meta name="twitter:image" content="<%= it.ogImage %>">
+
   <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +64,7 @@
           <form class="retrieve-form" id="retrieve-form" onsubmit="event.preventDefault();">
             <label for="retrieve-input" class="sr-only">Retrieve Paste with Code</label>
             <input type="text" id="retrieve-input" placeholder="Retrieve with 6-digit code..." maxlength="6" pattern="\d{6}" required autocomplete="off">
-            <button type="submit" class="retrieve-btn" title="Retrieve snippet">
+            <button type="submit" class="retrieve-btn" id="retrieve-btn" title="Retrieve snippet">
               <svg class="retrieve-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="currentColor"/>
               </svg>
