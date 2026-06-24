@@ -1,0 +1,37 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@eta-dev/eta@3": "3.5.0",
+    "jsr:@std/assert@1": "1.0.12",
+    "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/internal@^1.0.6": "1.0.12",
+    "jsr:@std/path@1": "1.1.4"
+  },
+  "jsr": {
+    "@eta-dev/eta@3.5.0": {
+      "integrity": "6b70827efc14c7cbf08498ac7a922ecab003641caf3852a6cb5b1b12ee58fb37"
+    },
+    "@std/assert@1.0.12": {
+      "integrity": "08009f0926dda9cbd8bef3a35d3b6a4b964b0ab5c3e140a4e0351fbf34af5b9a",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.6"
+      ]
+    },
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.12"
+      ]
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@eta-dev/eta@3",
+      "jsr:@std/assert@1",
+      "jsr:@std/path@1"
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.title %></title>
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <main class="app-container">
+    <div class="card">
+      <header class="app-header">
+        <div class="logo-container">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor" class="icon-warning-stub"/>
+            <!-- Custom Wireless Paste SVG Icon -->
+            <path d="M19 3H14.82C14.4 1.84 13.3 1 12 1C10.7 1 9.6 1.84 9.18 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM12 3C12.55 3 13 3.45 13 4C13 4.55 12.55 5 12 5C11.45 5 11 4.55 11 4C11 4.55 11.45 3 12 3ZM19 19H5V5H7V7H17V5H19V19Z" fill="url(#brand-gradient)" />
+            <path d="M9 10C9 8.34 10.34 7 12 7C13.66 7 15 8.34 15 10C15 10.83 14.66 11.58 14.12 12.12L12 14.24L9.88 12.12C9.34 11.58 9 10.83 9 10Z" fill="url(#brand-gradient-secondary)" opacity="0.8"/>
+            <defs>
+              <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a78bfa" />
+                <stop offset="100%" stop-color="#f472b6" />
+              </linearGradient>
+              <linearGradient id="brand-gradient-secondary" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" />
+                <stop offset="100%" stop-color="#a78bfa" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="app-title">AirPaste</h1>
+        <p class="app-subtitle">Share text and code snippets instantly across your devices</p>
+      </header>
+
+      <form class="paste-form" onsubmit="event.preventDefault();" novalidate>
+        <div class="textarea-wrapper">
+          <label for="snippet-input" class="sr-only">Paste or type your content here</label>
+          <textarea
+            id="snippet-input"
+            name="snippet"
+            placeholder="Type or paste your text here..."
+            spellcheck="false"
+            required
+          ><%= it.initialValue %></textarea>
+          
+          <div class="textarea-footer">
+            <span class="textarea-hint">Ready to share</span>
+            <span class="char-count" id="char-counter">0 characters</span>
+          </div>
+        </div>
+
+        <button type="submit" class="save-btn" id="save-button">
+          <span>Save Snippet</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 12.998H13V18.998H11V12.998H5V10.998H11V4.998H13V10.998H19V12.998Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+    
+    <footer class="app-info">
+      <p>Deploy powered by <span class="accent-text">Deno Deploy</span></p>
+    </footer>
+  </main>
+  
+  <script>
+    // Micro-interaction for character count & dynamic text area behaviors
+    const textarea = document.getElementById('snippet-input');
+    const counter = document.getElementById('char-counter');
+    
+    function updateCounter() {
+      const len = textarea.value.length;
+      counter.textContent = `${len.toLocaleString()} character${len === 1 ? '' : 's'}`;
+    }
+    
+    textarea.addEventListener('input', updateCounter);
+    // Call initially to cover initial values loaded via template
+    updateCounter();
+  </script>
+</body>
+</html>
