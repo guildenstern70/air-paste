@@ -2,7 +2,9 @@
   "version": "5",
   "specifiers": {
     "jsr:@eta-dev/eta@3": "3.5.0",
+    "jsr:@littlelite/dyelog@~0.2.1": "0.2.2",
     "jsr:@std/assert@1": "1.0.12",
+    "jsr:@std/fmt@^1.0.9": "1.0.10",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/internal@^1.0.6": "1.0.12",
     "jsr:@std/path@1": "1.1.4"
@@ -11,11 +13,20 @@
     "@eta-dev/eta@3.5.0": {
       "integrity": "6b70827efc14c7cbf08498ac7a922ecab003641caf3852a6cb5b1b12ee58fb37"
     },
+    "@littlelite/dyelog@0.2.2": {
+      "integrity": "cdb90d599df5d79ffafe60fe69549880af5d6d93f33c94eeed0fa855bfa9d05a",
+      "dependencies": [
+        "jsr:@std/fmt"
+      ]
+    },
     "@std/assert@1.0.12": {
       "integrity": "08009f0926dda9cbd8bef3a35d3b6a4b964b0ab5c3e140a4e0351fbf34af5b9a",
       "dependencies": [
         "jsr:@std/internal@^1.0.6"
       ]
+    },
+    "@std/fmt@1.0.10": {
+      "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
@@ -30,6 +41,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@eta-dev/eta@3",
+      "jsr:@littlelite/dyelog@~0.2.1",
       "jsr:@std/assert@1",
       "jsr:@std/path@1"
     ]

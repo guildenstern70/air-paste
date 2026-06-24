@@ -7,13 +7,17 @@ seamlessly.
 
 To run AirPaste type
 
-    deno run --allow-net main.ts
+    ./run.sh
 
 ## Test
 
 To run tests, type
 
     deno test --allow-net
+
+## Lint
+
+
 
 
 

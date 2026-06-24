@@ -6,9 +6,20 @@
  */
 
 import { join } from "@std/path";
+import { DyeLog, LogLevel } from "@littlelite/dyelog";
 import { serveIndex } from "./controllers/index_controller.ts";
+import { VERSION } from "./version.ts";
 
 const staticDir = join(import.meta.dirname || "", "../static");
+
+// Logger
+const logger = new DyeLog({
+  timestamp: true,
+  printlevel: true,
+  level: LogLevel.TRACE,
+});
+
+logger.info("Welcome to AirPaste v." + VERSION);
 
 export async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
