@@ -40,6 +40,19 @@
         </div>
         <h1 class="app-title">AirPaste</h1>
         <p class="app-subtitle">Share text and code snippets instantly across your devices</p>
+        
+        <!-- Retrieve Paste Form -->
+        <div class="retrieve-container">
+          <form class="retrieve-form" id="retrieve-form" onsubmit="event.preventDefault();">
+            <label for="retrieve-input" class="sr-only">Retrieve Paste with Code</label>
+            <input type="text" id="retrieve-input" placeholder="Retrieve with 6-digit code..." maxlength="6" pattern="\d{6}" required autocomplete="off">
+            <button type="submit" class="retrieve-btn" title="Retrieve snippet">
+              <svg class="retrieve-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="currentColor"/>
+              </svg>
+            </button>
+          </form>
+        </div>
       </header>
 
       <form class="paste-form" onsubmit="event.preventDefault();" novalidate>
@@ -54,7 +67,7 @@
           ><%= it.initialValue %></textarea>
           
           <div class="textarea-footer">
-            <span class="textarea-hint">Ready to share</span>
+            <span class="textarea-hint" id="textarea-status-hint">Ready to share</span>
             <span class="char-count" id="char-counter">0 characters</span>
           </div>
         </div>
@@ -66,6 +79,26 @@
           </svg>
         </button>
       </form>
+
+      <!-- Sync Sharing Panel (hidden by default) -->
+      <div class="share-panel" id="share-panel">
+        <div class="share-header">
+          <span class="share-label">Sync Code</span>
+          <button type="button" class="action-btn" id="copy-btn" title="Copy Magic Link">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z" fill="currentColor"/>
+            </svg>
+            <span>Copy Link</span>
+          </button>
+        </div>
+        <div class="share-body">
+          <div class="share-code" id="share-code-digits">--- ---</div>
+          <div class="share-qr-box">
+            <img class="share-qr-img" id="share-qr-img" src="" alt="Scan QR Code to retrieve paste">
+            <span class="qr-caption">Scan to sync on other devices</span>
+          </div>
+        </div>
+      </div>
     </div>
     
     <footer class="app-info">
@@ -74,18 +107,245 @@
   </main>
   
   <script>
-    // Micro-interaction for character count & dynamic text area behaviors
+    // State Variables
+    let currentCode = "<%= it.code || '' %>";
+    let lastUpdatedAt = <%= it.updatedAt || 0 %>;
+
+    // DOM Elements
     const textarea = document.getElementById('snippet-input');
     const counter = document.getElementById('char-counter');
-    
+    const statusHint = document.getElementById('textarea-status-hint');
+    const saveButton = document.getElementById('save-button');
+    const saveButtonText = saveButton.querySelector('span');
+    const saveButtonIcon = saveButton.querySelector('.btn-icon');
+    const sharePanel = document.getElementById('share-panel');
+    const shareCodeDigits = document.getElementById('share-code-digits');
+    const shareQrImg = document.getElementById('share-qr-img');
+    const copyBtn = document.getElementById('copy-btn');
+    const retrieveForm = document.getElementById('retrieve-form');
+    const retrieveInput = document.getElementById('retrieve-input');
+
+    // Update character counter
     function updateCounter() {
       const len = textarea.value.length;
       counter.textContent = `${len.toLocaleString()} character${len === 1 ? '' : 's'}`;
     }
-    
     textarea.addEventListener('input', updateCounter);
-    // Call initially to cover initial values loaded via template
     updateCounter();
+
+    // Toast Notifications System
+    function showToast(message, type = 'success') {
+      // Remove any existing toast to prevent stacking clutter
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) {
+        existingToast.remove();
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Trigger reflow/animation
+      setTimeout(() => toast.classList.add('visible'), 10);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Check URL parameters for errors
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('error') === 'notfound') {
+      showToast('The paste code was not found or has expired.', 'error');
+      // Clean URL query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Format code: "123456" -> "123 456"
+    function formatCode(code) {
+      if (code && code.length === 6) {
+        return code.slice(0, 3) + ' ' + code.slice(3);
+      }
+      return code || '--- ---';
+    }
+
+    // Update UI based on code/sync state
+    function updateStateUI(code) {
+      currentCode = code;
+      if (code) {
+        saveButtonText.textContent = 'Update Paste';
+        statusHint.textContent = 'Synchronized';
+        // Set update/sync icon
+        saveButtonIcon.innerHTML = `<path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.78 16.28C19.55 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.22 7.72C4.45 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>`;
+        
+        shareCodeDigits.textContent = formatCode(code);
+        const link = `${window.location.origin}/${code}`;
+        shareQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+        sharePanel.classList.add('active');
+      } else {
+        saveButtonText.textContent = 'Save Snippet';
+        statusHint.textContent = 'Ready to share';
+        saveButtonIcon.innerHTML = `<path d="M19 12.998H13V18.998H11V12.998H5V10.998H11V4.998H13V10.998H19V12.998Z" fill="currentColor"/>`;
+        sharePanel.classList.remove('active');
+      }
+    }
+
+    // Initialize UI state
+    if (currentCode) {
+      updateStateUI(currentCode);
+    }
+
+    // Save/Update paste submission
+    document.querySelector('.paste-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = textarea.value;
+      if (!content.trim()) {
+        showToast('Please type something first!', 'error');
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveButtonText.textContent = currentCode ? 'Updating...' : 'Saving...';
+
+      try {
+        const url = currentCode ? `/api/paste/${currentCode}` : '/api/paste';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Server error');
+        }
+
+        const data = await response.json();
+        
+        if (!currentCode && data.code) {
+          updateStateUI(data.code);
+          window.history.pushState({ code: data.code }, '', `/${data.code}`);
+          showToast('Paste saved! Scan QR or copy link to share.');
+        } else {
+          showToast('Paste updated successfully!');
+        }
+        lastUpdatedAt = Date.now();
+      } catch (err) {
+        showToast('Failed to save paste. Please try again.', 'error');
+      } finally {
+        saveButton.disabled = false;
+        updateStateUI(currentCode);
+      }
+    });
+
+    // Copy magic link to clipboard
+    copyBtn.addEventListener('click', async () => {
+      if (!currentCode) return;
+      const link = `${window.location.origin}/${currentCode}`;
+      try {
+        await navigator.clipboard.writeText(link);
+        showToast('Link copied to clipboard!');
+      } catch (err) {
+        // Fallback for older browsers
+        const el = document.createElement('textarea');
+        el.value = link;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast('Link copied to clipboard!');
+      }
+    });
+
+    // Retrieve paste submission
+    retrieveForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = retrieveInput.value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        showToast('Please enter a valid 6-digit code.', 'error');
+        return;
+      }
+
+      const submitBtn = retrieveForm.querySelector('button');
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(`/api/paste/${code}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            showToast('Code not found or expired.', 'error');
+          } else {
+            showToast('Failed to fetch paste.', 'error');
+          }
+          return;
+        }
+
+        const data = await response.json();
+        textarea.value = data.content;
+        updateCounter();
+        updateStateUI(code);
+        lastUpdatedAt = data.updatedAt;
+        
+        window.history.pushState({ code }, '', `/${code}`);
+        retrieveInput.value = '';
+        showToast('Paste retrieved successfully!');
+      } catch (err) {
+        showToast('Connection error. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Auto check/sync when the page gains focus (visibilitychange)
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && currentCode) {
+        try {
+          const response = await fetch(`/api/paste/${currentCode}`);
+          if (response.ok) {
+            const data = await response.json();
+            // Compare timestamps (allow a 1-second margin)
+            if (data.updatedAt > lastUpdatedAt + 1000) {
+              textarea.value = data.content;
+              updateCounter();
+              lastUpdatedAt = data.updatedAt;
+              showToast('Synced! Content updated from another device.', 'info');
+            }
+          }
+        } catch (e) {
+          console.warn('Background sync failed:', e);
+        }
+      }
+    });
+
+    // Handle back/forward navigation
+    window.addEventListener('popstate', async (event) => {
+      const pathCode = window.location.pathname.match(/^\/(\d{6})$/);
+      if (pathCode) {
+        const code = pathCode[1];
+        try {
+          const response = await fetch(`/api/paste/${code}`);
+          if (response.ok) {
+            const data = await response.json();
+            textarea.value = data.content;
+            updateCounter();
+            updateStateUI(code);
+            lastUpdatedAt = data.updatedAt;
+          }
+        } catch (e) {
+          // Fallback UI
+        }
+      } else if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+        textarea.value = '';
+        updateCounter();
+        updateStateUI('');
+        lastUpdatedAt = 0;
+      }
+    });
   </script>
 </body>
 </html>
+

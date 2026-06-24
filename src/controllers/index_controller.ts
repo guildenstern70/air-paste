@@ -18,12 +18,19 @@ const eta = new Eta({
   cache: false, // Ensure templates are re-read from disk in development
 });
 
-export async function serveIndex(_req: Request): Promise<Response> {
+export async function serveIndex(
+  _req: Request,
+  code?: string,
+  initialValue = "",
+  updatedAt = 0,
+): Promise<Response> {
   try {
     const html = await eta.renderAsync("index", {
       title: "AirPaste — Instant Text Sharing",
       version: VERSION,
-      initialValue: "", // For future KV persistence value
+      code: code || "",
+      initialValue: initialValue,
+      updatedAt: updatedAt,
     });
 
     return new Response(html, {
