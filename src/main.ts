@@ -20,7 +20,8 @@ export async function handler(req: Request): Promise<Response> {
 
   if (url.pathname === "/api") {
     return Response.json({
-      message: "Hello, world!",
+      message: "Air-Paste v." + VERSION + " API",
+      isAlive: true,
       time: new Date().toISOString(),
     });
   }
