@@ -18,6 +18,7 @@ Then, add the relevant keys to your environment variables. You can do this by cr
 in the root of the project with the following content:
 
     UPSTASH_DB_HOTS=rediss://**********:6379
+    UPSTASH_DB_URL=https://********.upstash.io
     UPSTASH_REDIS_TOKEN=**************
     UPSTASH_REDIS_READONLY_TOKEN=**************
 
