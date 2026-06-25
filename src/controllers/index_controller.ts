@@ -8,6 +8,7 @@
 import { Eta } from "@eta-dev/eta";
 import { join } from "@std/path";
 import { VERSION } from "../version.ts";
+import { getStats, recordUsage } from "../db.ts";
 
 // Dynamically resolve template directory relative to this controller file
 const templateDir = join(import.meta.dirname || "", "../../static/template");
@@ -40,6 +41,11 @@ export async function serveIndex(
 
     const robots = code ? "noindex, nofollow" : "index, follow";
 
+    // Record the usage and get the updated stats
+    const { userId, isNewCookie } = await recordUsage(req);
+    const stats = await getStats();
+    const statsStr = `${stats.uniqueUsers}/${stats.totalUsages}`;
+
     const html = await eta.renderAsync("index", {
       title,
       metaDescription,
@@ -47,13 +53,25 @@ export async function serveIndex(
       canonicalUrl,
       ogImage,
       version: VERSION,
+      stats: statsStr,
       code: code || "",
       initialValue: initialValue,
       updatedAt: updatedAt,
     });
 
+    const headers = new Headers({
+      "content-type": "text/html; charset=utf-8",
+    });
+
+    if (isNewCookie) {
+      headers.set(
+        "Set-Cookie",
+        `airpaste_uid=${userId}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly`,
+      );
+    }
+
     return new Response(html, {
-      headers: { "content-type": "text/html; charset=utf-8" },
+      headers,
     });
   } catch (e) {
     console.error("Template rendering failed:", e);

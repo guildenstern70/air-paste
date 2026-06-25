@@ -120,7 +120,7 @@
     </div>
     
     <footer class="app-info">
-      <p>AirPaste v.<%= it.version %> — Deploy powered by <span class="accent-text">Deno Deploy</span></p>
+      <p>AirPaste v.<%= it.version %> (<%= it.stats %>) — Deploy powered by <span class="accent-text">Deno Deploy</span></p>
     </footer>
   </main>
   <script>

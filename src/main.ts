@@ -9,7 +9,7 @@ import { join } from "@std/path";
 import { serveIndex } from "./controllers/index_controller.ts";
 import { VERSION } from "./version.ts";
 import { logger } from "./logger.ts";
-import { checkConnection, getPaste, savePaste } from "./db.ts";
+import { checkConnection, getPaste, recordUsage, savePaste } from "./db.ts";
 
 const staticDir = join(import.meta.dirname || "", "../static");
 
@@ -35,6 +35,7 @@ export async function handler(req: Request): Promise<Response> {
           status: 400,
         });
       }
+      await recordUsage(req);
       const code = await savePaste(content);
       return Response.json({ code });
     } catch (_e) {
@@ -47,6 +48,7 @@ export async function handler(req: Request): Promise<Response> {
   if (apiMatch) {
     const code = apiMatch[1];
     if (req.method === "GET") {
+      await recordUsage(req);
       const paste = await getPaste(code);
       if (!paste) {
         return Response.json({ error: "Paste not found or expired" }, {
@@ -64,6 +66,7 @@ export async function handler(req: Request): Promise<Response> {
             { status: 400 },
           );
         }
+        await recordUsage(req);
         const savedCode = await savePaste(content, code);
         return Response.json({ code: savedCode });
       } catch (_e) {

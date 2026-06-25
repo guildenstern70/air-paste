@@ -138,3 +138,95 @@ export async function getPaste(code: string): Promise<Paste | null> {
     return null;
   }
 }
+
+/**
+ * Parses cookies from the request headers.
+ */
+export function parseCookies(headers: Headers): Record<string, string> {
+  const cookieHeader = headers.get("cookie") || "";
+  const cookies: Record<string, string> = {};
+  cookieHeader.split(";").forEach((cookie) => {
+    const parts = cookie.split("=");
+    if (parts.length === 2) {
+      cookies[parts[0].trim()] = parts[1].trim();
+    }
+  });
+  return cookies;
+}
+
+/**
+ * Retrieves client IP address from request headers and hashes it using SHA-256 for privacy.
+ */
+export async function getClientIp(req: Request): Promise<string> {
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown-ip";
+  if (ip === "unknown-ip") return ip;
+
+  try {
+    const msgUint8 = new TextEncoder().encode(ip);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  } catch (_e) {
+    return ip;
+  }
+}
+
+/**
+ * Records a usage of the application.
+ * If cookie airpaste_uid is present, uses it.
+ * Otherwise, generates a new one (for page loads) or falls back to IP address (for API).
+ * Returns the userId and whether it was a newly generated cookie UID.
+ */
+export async function recordUsage(
+  req: Request,
+): Promise<{ userId: string; isNewCookie: boolean }> {
+  try {
+    const cookies = parseCookies(req.headers);
+    let userId = cookies["airpaste_uid"];
+    let isNewCookie = false;
+
+    if (!userId) {
+      const url = new URL(req.url);
+      const isApi = url.pathname.startsWith("/api/");
+      if (isApi) {
+        const hashedIp = await getClientIp(req);
+        userId = `ip:${hashedIp}`;
+      } else {
+        userId = crypto.randomUUID();
+        isNewCookie = true;
+      }
+    }
+
+    // Add to unique users set and increment total usage
+    await redis.sadd("stats:unique_users", userId);
+    await redis.incr("stats:total_usages");
+
+    return { userId, isNewCookie };
+  } catch (error) {
+    logger.error(`Error recording usage: ${error}`);
+    return { userId: "unknown", isNewCookie: false };
+  }
+}
+
+export interface AppStats {
+  uniqueUsers: number;
+  totalUsages: number;
+}
+
+/**
+ * Retrieves application usage stats.
+ */
+export async function getStats(): Promise<AppStats> {
+  try {
+    const uniqueUsers = await redis.scard("stats:unique_users");
+    const totalUsagesVal = await redis.get<string | number>(
+      "stats:total_usages",
+    );
+    const totalUsages = totalUsagesVal ? Number(totalUsagesVal) : 0;
+    return { uniqueUsers, totalUsages };
+  } catch (error) {
+    logger.error(`Error getting stats: ${error}`);
+    return { uniqueUsers: 0, totalUsages: 0 };
+  }
+}

@@ -197,3 +197,47 @@ Deno.test("SEO: Static image serving delivers assets", async () => {
   const bytes = await res.arrayBuffer();
   assertEquals(bytes.byteLength > 0, true);
 });
+
+Deno.test("Stats tracking: records page views and cookies", async () => {
+  // 1. Visit with a brand new cookie-less request
+  const req1 = new Request("http://localhost/");
+  const res1 = await handler(req1);
+  assertEquals(res1.status, 200);
+
+  const setCookie = res1.headers.get("set-cookie");
+  assertEquals(typeof setCookie, "string");
+  assertEquals(setCookie?.includes("airpaste_uid="), true);
+
+  const cookieMatch = setCookie?.match(/airpaste_uid=([^;]+)/);
+  const cookieVal = cookieMatch ? cookieMatch[1] : "";
+  assertEquals(cookieVal.length > 0, true);
+
+  const html1 = await res1.text();
+  const statsMatch1 = html1.match(/AirPaste v\.\d+\.\d+\.\d+ \(([^)]+)\)/);
+  let u1 = 0, t1 = 0;
+  if (statsMatch1) {
+    [u1, t1] = statsMatch1[1].split("/").map(Number);
+  }
+
+  // 2. Visit again with the same cookie
+  const req2 = new Request("http://localhost/", {
+    headers: { "cookie": `airpaste_uid=${cookieVal}` },
+  });
+  const res2 = await handler(req2);
+  assertEquals(res2.status, 200);
+
+  // Should NOT set a new cookie since they already have one
+  assertEquals(res2.headers.get("set-cookie"), null);
+
+  const html2 = await res2.text();
+  const statsMatch2 = html2.match(/AirPaste v\.\d+\.\d+\.\d+ \(([^)]+)\)/);
+  let u2 = 0, t2 = 0;
+  if (statsMatch2) {
+    [u2, t2] = statsMatch2[1].split("/").map(Number);
+  }
+
+  // Total usages should increment by exactly 1 between visit 1 and visit 2
+  assertEquals(t2, t1 + 1);
+  // Unique users count should not increase between visit 1 and visit 2
+  assertEquals(u2, u1);
+});
